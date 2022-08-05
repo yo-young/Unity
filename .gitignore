@@ -12,7 +12,7 @@ Project1/My project/[Ll]ogs/
 Project1/My project/Library/PackageCache
 
 # Asset meta data should only be ignored when the corresponding asset is also ignored
-!/[Aa]ssets/**/*.meta
+Project1/My project/[Aa]ssets/**/*.meta
 
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
