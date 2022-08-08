@@ -6,6 +6,7 @@ public class PlayerMove : MonoBehaviour
 {
     //public 변수로 설정하면 Inspector에서 실행 중에도 값 변경 가능
     public float maxSpeed;
+    public float jumpPower;
     Rigidbody2D rigid;
     SpriteRenderer spriteRenderer;
     Animator anim;
@@ -18,11 +19,17 @@ public class PlayerMove : MonoBehaviour
 
     }
 
-    //단발적인 키 입력은 Update에서 하는 것이 좋다
+    //단발적인 키 입력은 Update에서 하는 것이 좋다 ex) 점프
     void Update()
     {
+        //Jump
+        if (Input.GetButtonDown("Jump") && !anim.GetBool("isJumping"))
+        {
+            rigid.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
+            anim.SetBool("isJumping", true);
+        }
         //Stop speed
-        if(Input.GetButtonUp("Horizontal"))
+        if (Input.GetButtonUp("Horizontal"))
         {
             //normalized : 벡터 크기를 1로 만든 상태(단위벡터) GetAxisRaw랑 비슷하다?
             //normalized에 곱해주는 값이 크면 버튼을 떼도 미끄러진다.
@@ -62,5 +69,26 @@ public class PlayerMove : MonoBehaviour
         else if (rigid.velocity.x < maxSpeed*(-1)) // Left Max Speed
             // 왼쪽은 마이너스 속도기 때문에 맥스 스피드에 -1 곱
             rigid.velocity = new Vector2(maxSpeed*(-1), rigid.velocity.y);
+
+        //Landing Platform
+        if (rigid.velocity.y < 0) // y축 속도가 음수인 경우 = 점프하고 내려오는 순간
+        {
+            Debug.DrawRay(rigid.position, Vector3.down, new Color(0, 1, 0)); //레이를 그린다.
+            //현재 포지션에서 LayerMask Platform을 검색한다.
+            RaycastHit2D rayHit = Physics2D.Raycast(rigid.position,
+                                                    Vector3.down, 1,
+                                                    LayerMask.GetMask("Platform"));
+            //rayHit에 충돌이 있는 경우
+            if (rayHit.collider != null)
+            {
+                //충돌한 오브젝트와의 거리가 0.5 이하인 경우
+                if (rayHit.distance < 0.5f)
+                {
+                    //Debug.Log(rayHit.collider.name);
+                    //isJumping을 false로 setting
+                    anim.SetBool("isJumping", false);
+                }
+            }
+        }
     }
 }
