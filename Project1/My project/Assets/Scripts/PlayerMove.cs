@@ -84,7 +84,7 @@ public class PlayerMove : MonoBehaviour
                 //충돌한 오브젝트와의 거리가 0.5 이하인 경우
                 if (rayHit.distance < 0.5f)
                 {
-                    //Debug.Log(rayHit.collider.name);
+                    Debug.Log(rayHit.collider.name);
                     //isJumping을 false로 setting
                     anim.SetBool("isJumping", false);
                 }
