@@ -4,18 +4,21 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
+    public GameManager gameManager;
     //public 변수로 설정하면 Inspector에서 실행 중에도 값 변경 가능
     public float maxSpeed;
     public float jumpPower;
     Rigidbody2D rigid;
     SpriteRenderer spriteRenderer;
     Animator anim;
+    CapsuleCollider2D capsuleCollider;
 
     void Awake()
     {
         rigid = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
+        capsuleCollider = GetComponent<CapsuleCollider2D>();
 
     }
 
@@ -96,13 +99,50 @@ public class PlayerMove : MonoBehaviour
     {
         if (collision.gameObject.tag == "Enemy")
         {
-            Debug.Log("플레이어 피격");
-            OnDamaged(collision.transform.position);
+            if(rigid.velocity.y < 0 && transform.position.y > collision.transform.position.y)
+            {
+                OnAttack(collision.transform);
+            }
+            else
+            {
+                Debug.Log("플레이어 피격");
+                OnDamaged(collision.transform.position);
+            }
         }
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Coin")
+        {
+            Debug.Log("Item coin");
+            // Point
+            gameManager.stagePoint += 100;
+            // Deactive Item
+            collision.gameObject.SetActive(false);
+        }
+        else if (collision.gameObject.tag == "Finish")
+        {
+            // Next Stage
+            gameManager.NextStage();
+        }
+    }
+
+    void OnAttack(Transform enemy)
+    {
+        // Point
+        gameManager.stagePoint += 100;
+        // Reaction Force
+        rigid.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+        // Enemy Die
+        EnemyMove enemyMove =  enemy.GetComponent<EnemyMove>();
+        enemyMove.OnDamaged();
     }
 
     void OnDamaged(Vector2 targetPos)
     {
+        // Health down
+        gameManager.HealthDown();
         // Change layer
         gameObject.layer = 11;
         // View alpha
@@ -121,6 +161,17 @@ public class PlayerMove : MonoBehaviour
         gameObject.layer = 10;
         // View alpha
         spriteRenderer.color = new Color(1, 1, 1, 1);
+    }
 
+    public void OnDIe()
+    {
+        //Sprite Alpha
+        spriteRenderer.color = new Color(1, 1, 1, 0.4f);
+        //Sprite Flip Y
+        spriteRenderer.flipY = true;
+        //Collider Disable
+        capsuleCollider.enabled = false;
+        //Die effect jump
+        rigid.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
     }
 }

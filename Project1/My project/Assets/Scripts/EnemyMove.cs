@@ -12,6 +12,7 @@ public class EnemyMove : MonoBehaviour
     Rigidbody2D rigid;
     Animator anim;
     SpriteRenderer spriteRenderer;
+    CircleCollider2D circelCollider;
     public int nextMove;
 
     void Awake()
@@ -19,17 +20,18 @@ public class EnemyMove : MonoBehaviour
         rigid = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        circelCollider = GetComponent<CircleCollider2D>();
 
         Invoke("Think", Constants.InvokeTime);
     }
 
     void FixedUpdate()
     {
-        //nextMove¿¡ µû¶ó¼­ ¿òÁ÷ÀÓ
+        //nextMoveì— ë”°ë¼ì„œ ì›€ì§ì„
         rigid.velocity = new Vector2(nextMove, rigid.velocity.y);
 
         //Platform check
-        //ÇöÀç Æ÷Áö¼Ç x¿¡ nextMove*0.3f ¸¶ÁøÀ» Áà¼­ ¾ÕÂÊÀÇ PlatformÀ» Ã¼Å©
+        //í˜„ì¬ í¬ì§€ì…˜ xì— nextMove*0.3f ë§ˆì§„ì„ ì¤˜ì„œ ì•ìª½ì˜ Platformì„ ì²´í¬
         Vector2 frontVec = new Vector2(rigid.position.x + nextMove*0.3f, rigid.position.y);
         Debug.DrawRay(frontVec, Vector3.down, new Color(0, 1, 0));
         RaycastHit2D rayHit = Physics2D.Raycast(frontVec,
@@ -37,15 +39,15 @@ public class EnemyMove : MonoBehaviour
                                                 LayerMask.GetMask("Platform"));
         if (rayHit.collider == null)
         {
-            Debug.Log("°æ°í! ¾Õ ³¶¶°·¯Áö");
+            Debug.Log("ê²½ê³ ! ì• ë‚­ë– ëŸ¬ì§€");
             Turn();
         }
     }
 
-    //Çàµ¿ ·ÎÁ÷
+    //í–‰ë™ ë¡œì§
     void Think()
     {
-        //-1,0,1 ¼Â Áß ·£´ı
+        //-1,0,1 ì…‹ ì¤‘ ëœë¤
         nextMove = Random.Range(-1, 2);
 
         anim.SetInteger("RunningSpeed", nextMove);
@@ -55,7 +57,7 @@ public class EnemyMove : MonoBehaviour
         }
 
         float nextThinkTime = Random.Range(2f, 5f);
-        //nextThinkTime¸¶´Ù Àç±ÍÈ£Ãâ
+        //nextThinkTimeë§ˆë‹¤ ì¬ê·€í˜¸ì¶œ
         Invoke("Think", nextThinkTime);
     }
 
@@ -65,5 +67,24 @@ public class EnemyMove : MonoBehaviour
         spriteRenderer.flipX = nextMove == 1;
         CancelInvoke();
         Invoke("Think", Constants.InvokeTime);
+    }
+
+    public void OnDamaged()
+    {
+        //Sprite Alpha
+        spriteRenderer.color = new Color(1, 1, 1, 0.4f);
+        //Sprite Flip Y
+        spriteRenderer.flipY = true;
+        nextMove = 0;
+        //Collider Disable
+        circelCollider.enabled = false;
+        //Die effect jump
+        rigid.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
+        //Destroy
+        Invoke("DeActive", 5);
+    }
+    void DeActive()
+    {
+        gameObject.SetActive(false);
     }
 }
